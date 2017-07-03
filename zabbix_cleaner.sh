@@ -1,16 +1,13 @@
 #!/bin/bash
 PSQL="/usr/bin/psql"
 DBNAME="zabbix"
-DBUSER="postgres"
+DBUSER="zabbix"
 last_day=10
 array=( history history_str history_text history_uint trends trends_uint )
-# array=( history )
 for tbl in "${array[@]}"; do
-	# echo $tbl
 	echo $DBNAME" "$tbl
 	for i in `seq 1 $last_day`; do
 	        dd=`date +%Y_%m_%d -d "$i day ago"` 
-	        # dd="2016_07_18"
 	        partition=$tbl"_p$dd"   
 	        index_name=$partition"_1" 
 	        index_name_new=$partition"_1_new" 
@@ -21,7 +18,7 @@ for tbl in "${array[@]}"; do
 			echo "$index_name" 			
 
 			# echo "CREATE INDEX CONCURRENTLY $index_name_new  ON partitions.history_p$dd USING btree (itemid, clock); " 
-			$PSQL -U $DBUSER -d $DBNAME  -t -c "CREATE INDEX CONCURRENTLY $index_name_new  ON partitions.history_p$dd USING btree (itemid, clock); " 
+			$PSQL -U $DBUSER -d $DBNAME  -t -c "CREATE INDEX CONCURRENTLY $index_name_new  ON partitions.$partition USING btree (itemid, clock); " 
 	        echo "Done CREATE" 
 
 			$PSQL -U $DBUSER -d $DBNAME  -t -c "DROP INDEX partitions.$index_name" 
